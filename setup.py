@@ -2,7 +2,7 @@ from setuptools import setup
 
 version = "0.5.1"
 
-with open('README') as f:
+with open('README.md') as f:
     long_description = f.read()
 
 setup(
