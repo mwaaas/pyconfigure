@@ -19,15 +19,14 @@ Added features:
 
   * Concatenate variables on configuration: 
 		
-		'''yaml
+
 		config_field:!concat var.in.python "/relative/path"
-		'''
+
 
   * Support for implicit resolvers from PyYaml. 
 
   * Added concat implicit resolver: 
-		'''yaml
+
 		config_field: var.in.python "/relative/path" 
-		'''
 
 Development takes place at https://github.com/alfred82santa/configure
