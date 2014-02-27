@@ -4,3 +4,5 @@ build
 dist
 zvqavatar.conf
 _build
+.project
+.pydevproject
