@@ -2,7 +2,10 @@
 
 from unittest import TestCase as BaseTestCase
 from configure import Configuration, Ref, Factory
+from os import path
+from datetime import timedelta
 
+TEST_CONCAT_STRING = "base_test"
 
 class A(object):
 
@@ -41,9 +44,9 @@ b:
 e: !ref:.b
         """)
         self.assertEqual(c.a, 1)
-        #self.assertEqual(c.e(c), c.b)
-        #self.assertEqual(c.b.c(c.b), c.a)
-        #self.assertEqual(c.b.d(c.b), c.a)
+        # self.assertEqual(c.e(c), c.b)
+        # self.assertEqual(c.b.c(c.b), c.a)
+        # self.assertEqual(c.b.d(c.b), c.a)
 
     def test_factory(self):
         c = self.config("""
@@ -114,3 +117,41 @@ b: !obj:tests.a
         c.configure()
         self.assertTrue(c.a is A)
         self.assertTrue(c.b is a)
+
+    def test_concat(self):
+        c = self.config("""
+a: !concat tests.TEST_CONCAT_STRING "/test1"
+b: !concat tests.TEST_CONCAT_STRING '/test2' "/test3/" tests.TEST_CONCAT_STRING
+        """)
+        c.configure()
+        self.assertEqual(c.a, "base_test/test1")
+        self.assertEqual(c.b, "base_test/test2/test3/base_test")
+
+    def test_concat_implicit_resolver(self):
+        c = self.config("""
+a: tests.TEST_CONCAT_STRING "/test1"
+b: tests.TEST_CONCAT_STRING '/test2' "/test3/" tests.TEST_CONCAT_STRING
+        """)
+        c.configure()
+        self.assertEqual(c.a, "base_test/test1")
+        self.assertEqual(c.b, "base_test/test2/test3/base_test")
+
+    def test_load_from_file(self):
+        filename = path.join(path.dirname(__file__), 'examples', 'example.default.conf')
+        c = Configuration.from_file(filename)
+        c.configure()
+
+        self.assertEqual(c.a, 1)
+        self.assertIsInstance(c.b, timedelta)
+        self.assertEqual(c.b, timedelta(days=1))
+
+    def test_load_from_file_inheritance(self):
+        filename = path.join(path.dirname(__file__), 'examples', 'example.conf')
+        c = Configuration.from_file(filename)
+        c.configure()
+
+        self.assertEqual(c.a, 100)
+        self.assertIsInstance(c.b, timedelta)
+        self.assertEqual(c.b, timedelta(days=1))
+        self.assertEqual(c.c, "value")
+

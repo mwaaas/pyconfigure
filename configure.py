@@ -12,6 +12,7 @@ from types import FunctionType
 from re import compile as re_compile
 from collections import MutableMapping, Mapping
 from datetime import timedelta
+import re
 
 try:
     from yaml import CLoader as Loader
@@ -38,6 +39,7 @@ class Configuration(MutableMapping):
     """
 
     _constructors = {}
+    _implicit_resolvers = {}
     _multi_constructors = {}
 
     def __init__(self, struct=None, pwd=None, parent=None):
@@ -179,7 +181,7 @@ class Configuration(MutableMapping):
 
     @classmethod
     def from_file(cls, filename, ctx=None, pwd=None, constructors=None,
-                  multi_constructors=None, configure=True):
+                  multi_constructors=None, implicit_resolvers=None, configure=True):
         """ Construct :class:`.Configuration` object by reading and parsing file
         ``filename``.
 
@@ -198,11 +200,12 @@ class Configuration(MutableMapping):
             return cls.from_string(f.read(), ctx=ctx, pwd=pwd,
                                    constructors=constructors,
                                    multi_constructors=multi_constructors,
+                                   implicit_resolvers=implicit_resolvers,
                                    configure=configure)
 
     @classmethod
     def from_string(cls, string, ctx=None, pwd=None, constructors=None,
-                    multi_constructors=None, configure=True):
+                    multi_constructors=None, implicit_resolvers=None, configure=True):
         """ Construct :class:`.Configuration` from ``string``.
 
         :param string:
@@ -217,7 +220,8 @@ class Configuration(MutableMapping):
         ctx['pwd'] = pwd
         string = string % ctx
         cfg = cls.load(string, constructors=constructors,
-                       multi_constructors=multi_constructors)
+                       multi_constructors=multi_constructors,
+                       implicit_resolvers=implicit_resolvers)
         return cls.from_dict(cfg, pwd=pwd, configure=configure)
 
     @classmethod
@@ -233,12 +237,17 @@ class Configuration(MutableMapping):
         return c
 
     @classmethod
-    def load(cls, stream, constructors=None, multi_constructors=None):
+    def load(cls, stream, constructors=None, multi_constructors=None,
+             implicit_resolvers=None):
         loader = Loader(stream)
 
         cs = dict(cls._constructors)
         if constructors:
             cs.update(constructors)
+
+        ir = dict(cls._implicit_resolvers)
+        if implicit_resolvers:
+            ir.update(implicit_resolvers)
 
         mcs = dict(cls._multi_constructors)
         if multi_constructors:
@@ -251,6 +260,10 @@ class Configuration(MutableMapping):
         if mcs:
             for name, constructor in mcs.items():
                 loader.add_multi_constructor(name, constructor)
+
+        if ir:
+            for name, pattern in ir.items():
+                loader.add_implicit_resolver(name, pattern, None)
 
         try:
             return loader.get_single_data()
@@ -269,6 +282,14 @@ class Configuration(MutableMapping):
             cls._constructors[cname] = func
             return func
         return registration
+
+    @classmethod
+    def add_implicit_resolver(cls, name, pattern):
+        if not '_implicit_resolvers' in cls.__dict__:
+            cls.__dict__['_implicit_resolvers'] = dict(cls._implicit_resolvers)
+        cname = '!%s' % name
+
+        cls._implicit_resolvers[cname] = pattern
 
     @classmethod
     def add_multi_constructor(cls, name):
@@ -313,6 +334,27 @@ def _timedelta_contructor(loader, node):
         raise ConfigurationError(
             "value '%s' cannot be interpreted as date range" % item)
 
+
+@Configuration.add_constructor('concat')
+def _concatenate_var_constructor(loader, node):
+    node = loader.construct_scalar(node)
+
+    if not isinstance(node, str) or not node:
+        raise ConfigurationError(
+            "value '%s' cannot be interpreted as concatenation variables" % item)
+
+    items = [item.strip() for item in node.split(' ') if item.strip() != '']
+    result = []
+    for item in items:
+        if item[0] in ['"', "'"]:
+            result.append(item.strip('"\''))
+        else:
+            result.append(import_string(item))
+
+    return "".join(result)
+
+_concatenate_var_pattern = re.compile(r'^[a-zA-Z0-9\.\_]+ [\"\'][^\"]*[\"\'].*')
+Configuration.add_implicit_resolver('concat', _concatenate_var_pattern)
 
 @Configuration.add_constructor('bytesize')
 def _bytesize_constructor(loader, node):
@@ -400,7 +442,6 @@ class Ref(Directive):
         return '%s(%s)' % (self.__class__.__name__, self.ref)
 
     __repr__ = __str__
-
 
 @Configuration.add_multi_constructor('ref')
 def _ref_constructor(loader, tag, node):
@@ -591,9 +632,9 @@ class ImportStringError(ImportError):
     :copyright: (c) 2011 by the Werkzeug Team
     """
 
-    #: String in dotted notation that failed to be imported.
+    # : String in dotted notation that failed to be imported.
     import_name = None
-    #: Wrapped exception.
+    # : Wrapped exception.
     exception = None
 
     def __init__(self, import_name, exception):
