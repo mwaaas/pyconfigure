@@ -611,7 +611,10 @@ def import_string(import_name, silent=False):
         elif '.' in import_name:
             module, obj = import_name.rsplit('.', 1)
         else:
-            return __import__(import_name)
+            try:
+                return __import__(import_name)
+            except ImportError as e:
+                return __import__('__main__.' + import_name)
         try:
             return getattr(__import__(module, None, None, [obj]), obj)
         except (ImportError, AttributeError):
