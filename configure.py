@@ -614,7 +614,7 @@ def import_string(import_name, silent=False):
             try:
                 return __import__(import_name)
             except ImportError as e:
-                return import_name('__main__.' + import_name)
+                return import_string('__main__.' + import_name)
         try:
             return getattr(__import__(module, None, None, [obj]), obj)
         except (ImportError, AttributeError):
