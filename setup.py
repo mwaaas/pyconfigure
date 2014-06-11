@@ -1,15 +1,11 @@
 from setuptools import setup
 
-version = "0.5.2"
-
-with open('README.md') as f:
-    long_description = f.read()
+version = "0.5.4"
 
 setup(
     name="configure",
     version=version,
     description="configuration toolkit based on YAML",
-    long_description=long_description,
     author="Andrey Popp",
     author_email="8mayday@gmail.com",
     url='https://github.com/alfred82santa/configure',
