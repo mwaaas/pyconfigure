@@ -3,7 +3,7 @@ from setuptools import setup
 version = "0.5.4"
 
 setup(
-    name="configure",
+    name="PyConfigure",
     version=version,
     description="configuration toolkit based on YAML",
     author="Andrey Popp",
