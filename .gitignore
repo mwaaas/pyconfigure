@@ -6,3 +6,4 @@ zvqavatar.conf
 _build
 .project
 .pydevproject
+.idea
