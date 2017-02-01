@@ -13,6 +13,7 @@ from re import compile as re_compile
 from collections import MutableMapping, Mapping
 from datetime import timedelta
 import re
+from copy import deepcopy
 
 try:
     from yaml import CLoader as Loader
@@ -157,6 +158,13 @@ class Configuration(MutableMapping):
         def _impl(v):
             if isinstance(v, Directive):
                 return v(self)
+            if isinstance(v, Configuration) and "inherit" in v:
+                new_v = Configuration(dict(self[v['inherit']]))
+
+                del v['inherit']
+
+                new_v.update(v)
+                v = new_v
             if isinstance(v, Configuration):
                 return v.configure(_root=False)
             if isinstance(v, list):
@@ -773,3 +781,10 @@ def configure_logging(logcfg=None, disable_existing_loggers=True):
 
     from logging.config import dictConfig
     dictConfig(logcfg)
+
+@Configuration.add_multi_constructor('inherit')
+def _inherit_constructor(loader, tag, node):
+    pass
+
+class Inherit(Directive):
+    pass

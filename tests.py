@@ -155,3 +155,24 @@ b: tests.TEST_CONCAT_STRING '/test2' "/test3/" tests.TEST_CONCAT_STRING
         self.assertEqual(c.b, timedelta(days=1))
         self.assertEqual(c.c, "value")
 
+    def test_inheritance_of_yaml_section(self):
+        c = self.config(
+            """
+person_a:
+    name: Francis Mwangi
+    age: 23
+person_b:
+    inherit: person_a
+    age: 30
+            """
+        )
+        c.configure()
+
+        self.assertEqual(c.person_a.name, "Francis Mwangi")
+        self.assertEqual(c.person_a.age, 23)
+
+        self.assertEqual(c.person_b.name, "Francis Mwangi")
+        self.assertEqual(c.person_b.age, 30)
+
+        self.assertTrue(len(c.person_b)==2)
+
