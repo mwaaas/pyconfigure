@@ -166,7 +166,6 @@ person_b:
     age: 30
             """
         )
-        c.configure()
 
         self.assertEqual(c.person_a.name, "Francis Mwangi")
         self.assertEqual(c.person_a.age, 23)
@@ -175,4 +174,31 @@ person_b:
         self.assertEqual(c.person_b.age, 30)
 
         self.assertTrue(len(c.person_b)==2)
+
+
+    def test_converting_to_dict(self):
+        c = self.config(
+            """
+person_a:
+    name: Francis Mwangi
+    age: 23
+person_b:
+    inherit: person_a
+    age: 30
+            """
+        )
+
+        self.assertEqual(
+            dict(
+                person_a=dict(
+                    name="Francis Mwangi",
+                    age=23
+                ),
+                person_b=dict(
+                    name="Francis Mwangi",
+                    age=30
+                )
+            ),
+            c.to_dict()
+        )
 

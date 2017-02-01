@@ -280,6 +280,15 @@ class Configuration(MutableMapping):
         finally:
             loader.dispose()
 
+    def to_dict(self):
+        results = {}
+        for key, value in self._Configuration__struct.items():
+            if isinstance(value, Configuration):
+                value = value._Configuration__struct
+            results.update(
+                {key: value}
+            )
+        return results
     @classmethod
     def add_constructor(cls, name):
         if not '_constructors' in cls.__dict__:
