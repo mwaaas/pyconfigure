@@ -239,10 +239,12 @@ class Configuration(MutableMapping):
         :param d:
             mapping object to use for config
         """
-        c = cls(cfg, pwd=pwd)
+
         if configure:
+            c = cls(cfg, pwd=pwd)
             c.configure()
-        return c
+            return c
+        return cfg
 
     @classmethod
     def load(cls, stream, constructors=None, multi_constructors=None,
