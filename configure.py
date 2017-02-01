@@ -224,9 +224,6 @@ class Configuration(MutableMapping):
             mapping of names to constructor for custom objects in YAML. Look at
             `_timedelta_constructor` and `_re_constructor` for examples.
         """
-        ctx = ctx or {}
-        ctx['pwd'] = pwd
-        string = string % ctx
         cfg = cls.load(string, constructors=constructors,
                        multi_constructors=multi_constructors,
                        implicit_resolvers=implicit_resolvers)

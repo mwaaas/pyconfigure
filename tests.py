@@ -1,6 +1,6 @@
 """ Tests for configure"""
 
-from unittest import TestCase as BaseTestCase
+from unittest import TestCase as BaseTestCase, skip
 from configure import Configuration, Ref, Factory
 from os import path
 from datetime import timedelta
@@ -27,6 +27,7 @@ class TestCase(BaseTestCase):
     def config(self, v, ctx=None):
         return Configuration.from_string(v.strip(), ctx=ctx)
 
+    @skip("removed interpolation")
     def test_interpolation(self):
         c = self.config("""
 a: "%(a)s"
