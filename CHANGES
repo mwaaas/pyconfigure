@@ -1,5 +1,10 @@
 0.5.7
 -----
+* removed interpolation feature its conflicting with
+  jinja2 yaml
+
+0.5.7
+-----
 * added method to convert Configuration to dict
 
 0.5.6
