@@ -1,9 +1,12 @@
-0.5.7
+0.5.9
 -----
-* removed interpolation feature its conflicting with
-  jinja2 yaml
+* fixed a bug not cast configuration object that are nested into a dict
 
-0.5.7
+0.5.8
+-----
+* added method to convert Configuration to dict
+
+0.5.8
 -----
 * added method to convert Configuration to dict
 
