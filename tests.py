@@ -24,8 +24,9 @@ def kw(**kw):
 
 class TestCase(BaseTestCase):
 
-    def config(self, v, ctx=None):
-        return Configuration.from_string(v.strip(), ctx=ctx)
+    def config(self, v, ctx=None, configure=True):
+        return Configuration.from_string(v.strip(), ctx=ctx,
+                                         configure=configure)
 
     @skip("removed interpolation")
     def test_interpolation(self):
@@ -186,20 +187,37 @@ person_a:
 person_b:
     inherit: person_a
     age: 30
-            """
+    relatives:
+        dad: Michael Muraya
+        mother: Rachael Njeri
+        inlaw:
+            dad: Tom
+            mother: auma
+            """,
+            configure=False
         )
 
-        self.assertEqual(
-            dict(
+        expected_dict = dict(
                 person_a=dict(
                     name="Francis Mwangi",
                     age=23
                 ),
                 person_b=dict(
                     name="Francis Mwangi",
-                    age=30
+                    age=30,
+                    relatives=dict(
+                        dad="Michael Muraya",
+                        mother="Rachael Njeri",
+                        inlaw=dict(
+                            dad="Tom",
+                            mother="auma"
+                        )
+                    )
                 )
-            ),
-            c.to_dict()
+            )
+
+        self.assertEqual(
+            expected_dict,
+            c
         )
 

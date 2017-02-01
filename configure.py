@@ -143,7 +143,7 @@ class Configuration(MutableMapping):
     def __add__(self, config):
         return self.merge(config)
 
-    def configure(self, struct=None, _root=True):
+    def configure(self, struct=None, _root=True, configure=True):
         """ Commit configuration
 
         This method performs all actions pending to this ``Configuration``
@@ -166,7 +166,7 @@ class Configuration(MutableMapping):
                 new_v.update(v)
                 v = new_v
             if isinstance(v, Configuration):
-                return v.configure(_root=False)
+                return v.configure(_root=False, configure=configure)
             if isinstance(v, list):
                 for x in v[:]:
                     v[v.index(x)] = _impl(x)
@@ -177,10 +177,17 @@ class Configuration(MutableMapping):
                 self.__struct = self.__struct(
                     Configuration.from_dict({}, pwd=self._pwd))
 
+        dict_obj = {}
         for k, v in self.items():
-            self[k] = _impl(v)
+            value = _impl(v)
+            if configure:
+                self[k] = value
+            else:
+                dict_obj[k] = dict(value) \
+                    if isinstance(value, Configuration) \
+                    else value
 
-        return self
+        return self if configure else dict_obj
 
     def __repr__(self):
         return repr(self.__struct)
@@ -237,11 +244,8 @@ class Configuration(MutableMapping):
             mapping object to use for config
         """
 
-        if configure:
-            c = cls(cfg, pwd=pwd)
-            c.configure()
-            return c
-        return cfg
+        c = cls(cfg, pwd=pwd)
+        return c.configure(configure=configure)
 
     @classmethod
     def load(cls, stream, constructors=None, multi_constructors=None,
